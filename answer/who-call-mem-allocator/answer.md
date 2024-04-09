@@ -1,0 +1,3 @@
+本题考查perf的使用。
+perf除了可以trace PMU这种hardevent还可以trace软件事件。当perf用来trace软件事件（也就是某个tracepoint）的时候可以用来统计该tracepoint所在函数的被调用分布。
+这里因为题目说的是malloc被频繁调用，并不是kernel中的kmalloc，所以我们不能直接使用现成的kmalloc的tracepoint。这就引出了第二个知识点：perf可以给用户态程序添加动态tracepoint（perf probe）
