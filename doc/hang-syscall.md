@@ -1,0 +1,2 @@
+## 题目描述
+你的程序hang住了，通过gdb你发现这个程序hang在了某个syscall上（比如openat），进一步地，你用strace验证了程序确实在调用了openat之后停止了之后的syscall。现在你要探究为什么hang住了。
