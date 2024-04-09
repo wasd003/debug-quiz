@@ -1,0 +1,2 @@
+## 题目描述
+你编写了一个server，这个server会按顺序处理一系列request。你发现每当处理到第10000个request的时候，这第10000个request的处理latency都远远长于其余request，这是什么原因呢？
