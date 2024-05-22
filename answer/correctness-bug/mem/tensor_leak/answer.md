@@ -1,0 +1,16 @@
+## 参考答案
+由于write up中反复强调optimizer的实现中要防止tensor泄露，所以怀疑是optimizer的问题。
+- 首先将Adam优化器替换成了动量SGD，现象不变
+- 然后将动量SGD替换成普通SGD，现象不变
+
+因此认为和优化器的实现无关，怀疑可能是某个模块实现的有问题
+理论上每个epoch内部的每个minibatch彼此独立，也就是说第i个mini-batch所使用到的Tensor，在第j个mini-batch训练的时候都可以释放掉。
+也就是说每次minibatch开始的时候，系统中存在的live tensor都应该数量不变，但是实测每个minibatch开始的时候，live tensor的数量持续上升。
+
+想要知道是哪些应该释放的tensor没有被释放，就需要有个方法标识tensor。可以用内存地址标识，但是这样的问题是同一块内存可能反复被释放再分配，
+无法唯一标识一个tensor。所以给tensor内部加了个ID字段，每次分配的时候记录对应ID tensor的calltrce。
+跑一段时间之后将没能释放的tensor的calltrace打印出来。但是这样看并不是很方便，因为网络比较复杂，即便能找到calltrace，也不容易根据calltrace发现原因。
+
+所以将网络替换为了单层Linear，发现没有内存泄漏的问题。至此，说明应该是网络的实现导致的Tensor泄露。
+通过在不泄露的Linear和泄露的mlp_resnet之间二分，发现是因为BatchNorm层导致的泄露。
+进一步观察其实现，发现是因为更新BatchNorm中的running_mean和running_var没有取`.data`导致的问题。
