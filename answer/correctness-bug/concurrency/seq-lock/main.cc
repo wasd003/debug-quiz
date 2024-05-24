@@ -11,7 +11,7 @@
 
 using namespace std;
 
-unordered_map<int, int> before_me_list;
+unordered_map<int, int> before_me_storage;
 
 typedef struct {
     atomic<int> last_requested; // tid of thread who most recently requested this lock
@@ -55,8 +55,14 @@ int main() {
             const int tid = gettid();
             for (int j = 0; j < 10000; j ++ ) {
                 auto before_me = mutex_lock(&lk);
-                before_me_list[tid] = before_me;
-                atomic_thread_fence(std::memory_order_release);
+                { 
+                   /**
+                    * 在临界区的最开始记录通过时的状态
+                    * 并且用sfence保证先记录状态，再修改临界区数据
+                    */
+                    before_me_storage[tid] = before_me;
+                    atomic_thread_fence(std::memory_order_release);
+                }
                 cnt ++ ;
                 mutex_unlock(&lk);
             }
