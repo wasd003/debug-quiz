@@ -1,0 +1,3 @@
+## 参考解答
+可以用tsan检查是否存在data race，同时使用before_me_list记录所有线程上一次进入临界区时的before_me
+注意要加上fence，以保证before_me_list记录的正确性
